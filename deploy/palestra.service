@@ -1,0 +1,41 @@
+# Systemd unit per PalEstra.
+#
+# Assume il setup descritto nel README: un utente dedicato `palestra` e il
+# repo in /opt/palestra/app. Se il tuo setup e' diverso, modifica
+# User/WorkingDirectory/ExecStart prima di copiarlo.
+#
+# Installazione:
+#   sudo cp deploy/palestra.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now palestra
+
+[Unit]
+Description=PalEstra
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=palestra
+Group=palestra
+WorkingDirectory=/opt/palestra/app
+# `output: 'standalone'` in next.config.ts produce questo server con le
+# sole dipendenze necessarie: niente next-start, niente devDependencies.
+ExecStart=/usr/bin/node .next/standalone/server.js
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+EnvironmentFile=/opt/palestra/app/.env
+Restart=on-failure
+RestartSec=3
+
+# L'app scrive solo su Postgres: tutto il resto del filesystem le serve
+# in sola lettura.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/palestra/app/.next/cache
+
+[Install]
+WantedBy=multi-user.target

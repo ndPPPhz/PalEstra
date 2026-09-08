@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+
+/*
+ * One accent, a neutral ground, generous spacing. The athlete reads this
+ * one-handed in a gym and the coach reads it as a spreadsheet, so the
+ * palette stays quiet and the type stays large.
+ */
+@theme {
+  --color-bg: #fbfbfa;
+  --color-surface: #ffffff;
+  --color-line: #e7e5e2;
+  --color-ink: #1a1a18;
+  --color-muted: #6f6d68;
+  --color-faint: #a3a09a;
+
+  --color-accent: #16a34a;
+  --color-accent-soft: #e8f7ee;
+  --color-accent-ink: #0d5b2a;
+
+  --color-warn: #b45309;
+  --color-warn-soft: #fdf3e3;
+
+  /* Nods to the sheet: alternating week tints and the yellow DAY rows. */
+  --color-week-a: #f2f9f4;
+  --color-week-b: #f1f6fb;
+  --color-day: #fdf8e3;
+
+  --font-sans:
+    ui-sans-serif, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  --radius-card: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-bg: #131313;
+    --color-surface: #1b1b1a;
+    --color-line: #2e2d2b;
+    --color-ink: #f2f1ee;
+    --color-muted: #a3a09a;
+    --color-faint: #6f6d68;
+
+    --color-accent: #34d17a;
+    --color-accent-soft: #16281d;
+    --color-accent-ink: #9fe9bd;
+
+    --color-warn: #f0b429;
+    --color-warn-soft: #2b2313;
+
+    --color-week-a: #17201a;
+    --color-week-b: #161d24;
+    --color-day: #241f10;
+  }
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Large tap targets and no iOS zoom-on-focus: this is used mid-set. */
+input,
+textarea,
+select,
+button {
+  font: inherit;
+  font-size: max(16px, 1em);
+}

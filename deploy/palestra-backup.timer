@@ -1,0 +1,10 @@
+[Unit]
+Description=Backup notturno di PalEstra
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+# Se il server era spento all'ora prevista, il backup parte all'avvio.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

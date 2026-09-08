@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { mesoDays, mesoWeeks, prescriptions, trainingSessions } from '@/db/schema';
 import { badRequest, notFound } from '@/core/errors';

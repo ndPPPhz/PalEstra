@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { and, desc, eq, gt, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, isNull, sql } from 'drizzle-orm';
 import { config } from '@/config/env';
 import { db } from '@/db';
 import { coachProfiles, coachingRelationships, invites, mesocycles, users } from '@/db/schema';

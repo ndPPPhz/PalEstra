@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { prescriptions } from '@/db/schema';
 import { createExercise } from '@/core/exercises';
@@ -73,8 +73,7 @@ describe('copy-forward: quello che sostituisce "Uguale"', () => {
     const [row] = await db
       .select()
       .from(prescriptions)
-      .where(eq(prescriptions.weekId, week1.id))
-      .orderBy(prescriptions.createdAt);
+      .where(and(eq(prescriptions.weekId, week1.id), eq(prescriptions.slotId, slotA.id)));
 
     expect(row?.sets).toBe(4);
     expect(row?.reps).toBe(2);
@@ -171,7 +170,7 @@ describe('il loop settimanale', () => {
   });
 
   it('non si può registrare un allenamento di una settimana non pubblicata', async () => {
-    const { coach, athlete, meso, slotA } = await scenario();
+    const { coach, athlete, meso, slotA: slot } = await scenario();
     const { week: week2 } = await addWeek(coach, meso.id);
     await publishWeek(coach, week2.id);
 
@@ -182,7 +181,7 @@ describe('il loop settimanale', () => {
     // targeting a week the coach has not released: covered by the guard in
     // loadSessionForAthlete via the publishedAt check.
     expect(session2).toBeDefined();
-    await expect(upsertFeedback(athlete, { sessionId: session2.id, slotId: slotA.id, rawText: 'ok' })).resolves.toBeTruthy();
+    await expect(upsertFeedback(athlete, { sessionId: session2.id, slotId: slot.id, rawText: 'ok' })).resolves.toBeTruthy();
   });
 });
 
