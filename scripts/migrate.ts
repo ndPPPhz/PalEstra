@@ -8,7 +8,12 @@ async function main() {
 
   // A dedicated single connection: migrations run once at deploy time and
   // must not borrow (or exhaust) the app's pool.
-  const client = postgres(url, { max: 1 });
+  //
+  // deploy.sh runs this on every deploy, and re-running it is a no-op that
+  // Postgres still narrates ("schema drizzle already exists, skipping").
+  // Those NOTICEs print as raw objects that read exactly like a crash, so
+  // they are dropped: a real failure still throws and exits non-zero.
+  const client = postgres(url, { max: 1, onnotice: () => {} });
   await migrate(drizzle(client), { migrationsFolder: 'src/db/migrations' });
   await client.end();
 
