@@ -69,13 +69,22 @@ test('dal link di invito alla settimana successiva', async ({ browser }) => {
   await expect(coach).toHaveURL(/\/schede\//);
   const mesocycleUrl = coach.url();
 
-  await coach.getByRole('button', { name: 'Aggiungi giornata' }).click();
-  await coach.locator('select[name="exerciseId"]').selectOption({ label: 'Trazioni' });
-  await coach.getByRole('button', { name: 'Aggiungi riga' }).click();
+  // Una scheda vuota si costruisce in un colpo solo, non riga per riga.
   await coach
-    .getByPlaceholder('oppure scrivi: FRONT ONE LEG LEGGERISSIMA')
-    .fill('PLANCHE TUCK CELESTE');
-  await coach.getByRole('button', { name: 'Aggiungi riga' }).click();
+    .getByLabel('Struttura della scheda')
+    .fill('DAY 1\nTrazioni\nPLANCHE TUCK CELESTE');
+
+  // L'anteprima gira lo stesso parser del server: quello che promette e'
+  // quello che verra' creato. "Trazioni" e' gia' in libreria e non viene
+  // duplicato, l'altro e' nuovo.
+  const preview = coach.getByRole('listitem').filter({ hasText: 'PLANCHE TUCK CELESTE' });
+  await expect(preview.getByText('nuovo')).toBeVisible();
+  await expect(
+    coach.getByRole('listitem').filter({ hasText: /^Trazioni/ }).getByText('nuovo'),
+  ).toHaveCount(0);
+
+  await coach.getByRole('button', { name: 'Crea la struttura' }).click();
+  await expect(coach.getByRole('columnheader', { name: 'DAY 1' })).toBeVisible();
 
   // ── WEEK 1: compila e pubblica ──────────────────────────────────────
   await coach.getByRole('button', { name: 'Aggiungi settimana' }).click();

@@ -31,6 +31,33 @@ Due cose che il foglio non sa fare:
   settimana, e la settimana chiusa senza una successiva compare da sola
   nella lista "Schede da aggiornare" del PT.
 
+### Il PT crea la scheda dal portale
+
+Questo e' il flusso di produzione; l'import da CSV piu' sotto serve solo a
+portarsi dietro lo storico di chi arriva da un foglio di calcolo.
+
+Da **Atleti** il PT apre "Nuova scheda". Una scheda vuota non mostra una
+griglia deserta ma un editor: si scrivono (o si incollano) gli esercizi,
+uno per riga, con una riga vuota a separare le giornate.
+
+```
+DAY 1              una riga vuota separa le giornate; se la prima riga
+Trazioni           di un blocco e' tipo "DAY 1" diventa il nome della
+HSPU               giornata, altrimenti viene numerata da sola
+                   
+Squat              elenchi puntati o numerati incollati da altrove
+Stacco             vengono ripuliti automaticamente
+```
+
+Un'anteprima dal vivo mostra cosa verra' creato e marca come `nuovo` gli
+esercizi che non sono ancora in libreria: i nomi gia' presenti vengono
+riusati, quindi si portano dietro descrizione e (in futuro) i video, e la
+libreria si riempie da sola invece di essere un modulo da compilare prima.
+Un salvataggio solo, non una riga alla volta.
+
+Da li' in poi comanda la griglia: le righe si aggiungono, si spostano e si
+eliminano dove le stai gia' guardando, senza ricaricare la pagina.
+
 ### Le prescrizioni sono ibride
 
 Il PT scrive come su Excel; un parser riempie i campi strutturati quando

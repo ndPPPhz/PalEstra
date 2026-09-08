@@ -4,8 +4,9 @@ import { mesocycleGrid } from '@/core/programs';
 import { listExercises } from '@/core/exercises';
 import { gridToDto } from '@/api/mappers';
 import { Badge, Button, Card, EmptyState, Input, PageTitle } from '@/ui';
-import { addDayAction, addSlotAction, addWeekAction, completeMesocycleAction, publishWeekAction } from '@/app/actions';
+import { addDayAction, addWeekAction, completeMesocycleAction, publishWeekAction } from '@/app/actions';
 import { MesocycleGrid } from './grid';
+import { StructureDraft } from './structure-draft';
 
 /**
  * Same data, two opposite screens — the point at which this beats the
@@ -20,27 +21,33 @@ export default async function MesocyclePage({ params }: { params: Promise<{ meso
   if (grid.role === 'athlete') return <AthleteView grid={grid} />;
 
   const exercises = await listExercises(user.id);
+  const libraryNames = exercises.map((exercise) => exercise.name);
   const lastWeek = grid.weeks.at(-1);
+  const isEmpty = grid.days.length === 0;
 
   return (
     <>
       <PageTitle
         action={
-          <div className="flex flex-wrap gap-2">
-            <form action={addWeekAction}>
-              <input type="hidden" name="mesocycleId" value={mesocycleId} />
-              <Button type="submit">Aggiungi settimana</Button>
-            </form>
-            {lastWeek && !lastWeek.publishedAt ? (
-              <form action={publishWeekAction}>
+          // While the programme is still empty the only job is building it;
+          // weeks would just be empty columns.
+          isEmpty ? null : (
+            <div className="flex flex-wrap gap-2">
+              <form action={addWeekAction}>
                 <input type="hidden" name="mesocycleId" value={mesocycleId} />
-                <input type="hidden" name="weekId" value={lastWeek.id} />
-                <Button type="submit" variant="secondary">
-                  Pubblica {lastWeek.label}
-                </Button>
+                <Button type="submit">Aggiungi settimana</Button>
               </form>
-            ) : null}
-          </div>
+              {lastWeek && !lastWeek.publishedAt ? (
+                <form action={publishWeekAction}>
+                  <input type="hidden" name="mesocycleId" value={mesocycleId} />
+                  <input type="hidden" name="weekId" value={lastWeek.id} />
+                  <Button type="submit" variant="secondary">
+                    Pubblica {lastWeek.label}
+                  </Button>
+                </form>
+              ) : null}
+            </div>
+          )
         }
       >
         {grid.mesocycle.title}
@@ -51,60 +58,34 @@ export default async function MesocyclePage({ params }: { params: Promise<{ meso
         {grid.mesocycle.completedAt ? ' · mesociclo chiuso' : ''}
       </p>
 
-      {grid.weeks.length > 1 ? (
-        <p className="mb-4 rounded-xl bg-accent-soft px-4 py-2.5 text-sm text-accent-ink">
-          Le settimane nuove nascono già compilate copiando la precedente: cambia solo le celle che
-          cambiano davvero.
-        </p>
-      ) : null}
+      {isEmpty ? (
+        <StructureDraft mesocycleId={mesocycleId} libraryNames={libraryNames} />
+      ) : (
+        <>
+          {grid.weeks.length > 1 ? (
+            <p className="mb-4 rounded-xl bg-accent-soft px-4 py-2.5 text-sm text-accent-ink">
+              Le settimane nuove nascono già compilate copiando la precedente: cambia solo le celle
+              che cambiano davvero.
+            </p>
+          ) : null}
 
-      <MesocycleGrid data={gridToDto(grid)} />
+          <MesocycleGrid data={gridToDto(grid)} canEdit libraryNames={libraryNames} />
 
-      <section className="mt-8">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Struttura</h2>
-        <div className="space-y-3">
-          {grid.days.map((day) => (
-            <Card key={day.id} className="p-4">
-              <p className="mb-3 font-medium">{day.label}</p>
-              <form action={addSlotAction} className="flex flex-wrap items-center gap-2">
-                <input type="hidden" name="mesocycleId" value={mesocycleId} />
-                <input type="hidden" name="dayId" value={day.id} />
-                <select
-                  name="exerciseId"
-                  className="rounded-xl border border-line bg-surface px-3 py-2 text-sm"
-                  defaultValue=""
-                >
-                  <option value="">— dalla libreria —</option>
-                  {exercises.map((exercise) => (
-                    <option key={exercise.id} value={exercise.id}>
-                      {exercise.name}
-                    </option>
-                  ))}
-                </select>
-                <Input
-                  name="labelOverride"
-                  placeholder="oppure scrivi: FRONT ONE LEG LEGGERISSIMA"
-                  maxLength={160}
-                  className="min-w-56 flex-1 py-2 text-sm"
-                />
-                <Button type="submit" variant="secondary" className="px-3 py-2 text-sm">
-                  Aggiungi riga
-                </Button>
-              </form>
-            </Card>
-          ))}
-
-          <form action={addDayAction} className="flex gap-2">
+          <form action={addDayAction} className="mt-4 flex gap-2">
             <input type="hidden" name="mesocycleId" value={mesocycleId} />
-            <Input name="label" placeholder={`DAY ${grid.days.length + 1}`} className="max-w-48 py-2 text-sm" />
+            <Input
+              name="label"
+              placeholder={`DAY ${grid.days.length + 1}`}
+              className="max-w-48 py-2 text-sm"
+            />
             <Button type="submit" variant="secondary" className="px-3 py-2 text-sm">
               Aggiungi giornata
             </Button>
           </form>
-        </div>
-      </section>
+        </>
+      )}
 
-      {!grid.mesocycle.completedAt ? (
+      {!grid.mesocycle.completedAt && !isEmpty ? (
         <form action={completeMesocycleAction} className="mt-10">
           <input type="hidden" name="mesocycleId" value={mesocycleId} />
           <Button variant="ghost" className="text-sm">

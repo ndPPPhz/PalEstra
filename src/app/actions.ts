@@ -4,18 +4,16 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { revokeSession } from '@/core/auth';
-import { createExercise, updateExercise, archiveExercise } from '@/core/exercises';
+import { archiveExercise, createExercise } from '@/core/exercises';
 import { createInvite, revokeInvite } from '@/core/relationships';
 import {
   addDay,
-  addSlot,
   addWeek,
   completeMesocycle,
   completeSession,
   completeWeek,
   createMesocycle,
   publishWeek,
-  removeSlot,
   reopenSession,
   setSessionNote,
 } from '@/core/programs';
@@ -65,14 +63,6 @@ export async function createExerciseAction(form: FormData) {
   revalidatePath('/esercizi');
 }
 
-export async function updateExerciseAction(form: FormData) {
-  const user = await requireUserPage();
-  await updateExercise(user, text(form, 'exerciseId'), {
-    name: text(form, 'name'),
-    description: text(form, 'description'),
-  });
-  revalidatePath('/esercizi');
-}
 
 export async function archiveExerciseAction(form: FormData) {
   const user = await requireUserPage();
@@ -96,22 +86,7 @@ export async function addDayAction(form: FormData) {
   revalidatePath(`/schede/${mesocycleId}`);
 }
 
-export async function addSlotAction(form: FormData) {
-  const user = await requireUserPage();
-  const exerciseId = text(form, 'exerciseId');
-  await addSlot(user, text(form, 'dayId'), {
-    // Either pick from the library or type a programme-specific name.
-    exerciseId: exerciseId || null,
-    labelOverride: text(form, 'labelOverride') || null,
-  });
-  revalidatePath(`/schede/${text(form, 'mesocycleId')}`);
-}
 
-export async function removeSlotAction(form: FormData) {
-  const user = await requireUserPage();
-  await removeSlot(user, text(form, 'slotId'));
-  revalidatePath(`/schede/${text(form, 'mesocycleId')}`);
-}
 
 export async function addWeekAction(form: FormData) {
   const user = await requireUserPage();

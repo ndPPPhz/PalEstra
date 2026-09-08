@@ -208,6 +208,29 @@ export const contract = {
     body: z.object({ label: z.string().max(60).optional() }),
     response: z.object({ id: uuid, label: z.string(), position: z.number().int() }),
   },
+  buildStructure: {
+    method: 'post',
+    path: '/mesocycles/{mesocycleId}/structure',
+    summary: 'Crea giornate ed esercizi in un colpo solo da quello che il PT ha scritto',
+    auth: true,
+    body: z.object({
+      days: z
+        .array(
+          z.object({
+            // Null means "numerala tu": DAY 1, DAY 2, ...
+            label: z.string().max(60).nullable(),
+            exercises: z.array(z.string().min(1).max(160)).min(1).max(60),
+          }),
+        )
+        .min(1)
+        .max(20),
+    }),
+    response: z.object({
+      dayCount: z.number().int(),
+      slotCount: z.number().int(),
+      createdExercises: z.number().int(),
+    }),
+  },
   addSlot: {
     method: 'post',
     path: '/days/{dayId}/slots',
@@ -215,6 +238,9 @@ export const contract = {
     auth: true,
     body: z.object({
       exerciseId: uuid.nullish(),
+      // Un nome libero si comporta come nella costruzione veloce: riusa
+      // l'esercizio in libreria se c'e', altrimenti lo aggiunge.
+      name: z.string().max(160).nullish(),
       labelOverride: z.string().max(160).nullish(),
     }),
     response: z.object({ id: uuid, position: z.number().int() }),

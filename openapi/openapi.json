@@ -2813,6 +2813,159 @@
         }
       }
     },
+    "/api/v1/mesocycles/{mesocycleId}/structure": {
+      "post": {
+        "operationId": "buildStructure",
+        "summary": "Crea giornate ed esercizi in un colpo solo da quello che il PT ha scritto",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mesocycleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "days": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string",
+                          "nullable": true,
+                          "maxLength": 60
+                        },
+                        "exercises": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 160
+                          },
+                          "minItems": 1,
+                          "maxItems": 60
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "exercises"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 20
+                  }
+                },
+                "required": [
+                  "days"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "dayCount": {
+                      "type": "integer"
+                    },
+                    "slotCount": {
+                      "type": "integer"
+                    },
+                    "createdExercises": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "dayCount",
+                    "slotCount",
+                    "createdExercises"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Richiesta non valida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non autenticato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/days/{dayId}/slots": {
       "post": {
         "operationId": "addSlot",
@@ -2843,6 +2996,11 @@
                     "type": "string",
                     "nullable": true,
                     "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 160
                   },
                   "labelOverride": {
                     "type": "string",

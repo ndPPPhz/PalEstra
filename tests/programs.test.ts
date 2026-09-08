@@ -8,6 +8,7 @@ import {
   addSlot,
   addWeek,
   athleteDayView,
+  buildStructure,
   coachPendingUpdates,
   completeSession,
   mesocycleGrid,
@@ -221,5 +222,79 @@ describe('permessi: un ruolo per relazione, non globale', () => {
 
     expect((await mesocycleGrid(coach, meso.id)).role).toBe('coach');
     expect((await mesocycleGrid(coach, own.id)).role).toBe('athlete');
+  });
+});
+
+describe('costruzione veloce della scheda', () => {
+  async function emptyMesocycle() {
+    const coach = await createUser('pt-build@example.com', 'Mattia');
+    const athlete = await createUser('atleta-build@example.com', 'Andrea');
+    const rel = await link(coach, athlete, 'Andrea');
+    const meso = await createMesocycle(coach, { relationshipId: rel.id, title: 'Meso 1' });
+    return { coach, athlete, meso };
+  }
+
+  it('crea giornate ed esercizi in un colpo solo', async () => {
+    const { coach, meso } = await emptyMesocycle();
+
+    const result = await buildStructure(coach, meso.id, [
+      { label: 'DAY 1', exercises: ['Trazioni', 'HSPU'] },
+      { label: null, exercises: ['Squat', 'Stacco', 'Dip'] },
+    ]);
+
+    expect(result).toEqual({ dayCount: 2, slotCount: 5, createdExercises: 5 });
+
+    const grid = await mesocycleGrid(coach, meso.id);
+    expect(grid.days.map((d) => d.label)).toEqual(['DAY 1', 'DAY 2']);
+    expect(grid.days[0]!.slots.map((s) => s.name)).toEqual(['Trazioni', 'HSPU']);
+    expect(grid.days[1]!.slots.map((s) => s.name)).toEqual(['Squat', 'Stacco', 'Dip']);
+  });
+
+  it('riusa un esercizio già in libreria invece di duplicarlo', async () => {
+    const { coach, meso } = await emptyMesocycle();
+    const existing = await createExercise(coach, { name: 'Trazioni', description: 'Presa prona.' });
+
+    // Different casing on purpose: it is the same exercise to a human.
+    const result = await buildStructure(coach, meso.id, [
+      { label: null, exercises: ['trazioni', 'Panca piana'] },
+    ]);
+
+    expect(result.createdExercises).toBe(1);
+
+    const grid = await mesocycleGrid(coach, meso.id);
+    const slot = grid.days[0]!.slots[0]!;
+    expect(slot.exerciseId).toBe(existing.id);
+    // Reusing the entry means the athlete gets the description for free.
+    expect(slot.description).toBe('Presa prona.');
+  });
+
+  it('appende in fondo se la scheda ha già delle giornate', async () => {
+    const { coach, meso } = await emptyMesocycle();
+    await buildStructure(coach, meso.id, [{ label: null, exercises: ['Trazioni'] }]);
+    await buildStructure(coach, meso.id, [{ label: null, exercises: ['Squat'] }]);
+
+    const grid = await mesocycleGrid(coach, meso.id);
+    expect(grid.days.map((d) => d.label)).toEqual(['DAY 1', 'DAY 2']);
+  });
+
+  it('non lascia mezza scheda se qualcosa fallisce', async () => {
+    const { coach, meso } = await emptyMesocycle();
+    // Over the per-day cap: validation must reject before anything is written.
+    await expect(
+      buildStructure(coach, meso.id, [
+        { label: null, exercises: ['Trazioni'] },
+        { label: null, exercises: Array.from({ length: 61 }, (_, i) => `E${i}`) },
+      ]),
+    ).rejects.toThrow(/Massimo 60 esercizi/);
+
+    const grid = await mesocycleGrid(coach, meso.id);
+    expect(grid.days).toHaveLength(0);
+  });
+
+  it('l’atleta non può costruire la scheda', async () => {
+    const { athlete, meso } = await emptyMesocycle();
+    await expect(
+      buildStructure(athlete, meso.id, [{ label: null, exercises: ['Trazioni'] }]),
+    ).rejects.toThrow(/Solo il preparatore/);
   });
 });
