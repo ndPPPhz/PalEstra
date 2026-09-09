@@ -162,6 +162,19 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now palestra
 ```
 
+Controlla che sia davvero partito prima di andare avanti:
+
+```bash
+systemctl status palestra --no-pager        # deve dire "active (running)"
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3000/login   # 200
+journalctl -u palestra -n 50 --no-pager     # se qualcosa non torna
+```
+
+Se il servizio non parte, il sospetto numero uno e' `.env`: viene letto
+anche da systemd, che non e' una shell, quindi i valori con spazi vanno
+fra virgolette (vedi i commenti in `.env.example`). Dopo ogni modifica a
+`.env` serve `sudo systemctl restart palestra`.
+
 Poi il reverse proxy con HTTPS:
 
 ```bash
