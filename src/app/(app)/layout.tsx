@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { requireUserPage } from '@/server/session';
-import { listAthletes, listCoaches } from '@/core/relationships';
 import { logoutAction } from '@/app/actions';
 
 /**
@@ -9,14 +8,17 @@ import { logoutAction } from '@/app/actions';
  * links appear only once they follow someone.
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUserPage();
-  const [athletes, coaches] = await Promise.all([listAthletes(user.id), listCoaches(user.id)]);
+  // Serve come guardia: reindirizza al login se non c'e' sessione.
+  await requireUserPage();
 
+  // "Atleti" e' la pagina dove si generano gli inviti, quindi e' anche
+  // l'unica strada per diventare preparatore: nasconderla a chi non ha
+  // ancora atleti lascerebbe un database nuovo senza alcun modo di
+  // invitare il primo.
   const links = [
     { href: '/home', label: 'Home' },
-    ...(athletes.length > 0 ? [{ href: '/atleti', label: 'Atleti' }] : []),
+    { href: '/atleti', label: 'Atleti' },
     { href: '/esercizi', label: 'Esercizi' },
-    ...(coaches.length > 0 || athletes.length === 0 ? [] : []),
     { href: '/impostazioni', label: 'Impostazioni' },
   ];
 

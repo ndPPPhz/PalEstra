@@ -14,10 +14,39 @@ export default async function HomePage() {
   ]);
 
   const isCoach = athletes.length > 0 || asCoach.length > 0;
+  // Chi arriva su un account nuovo non e' ne' l'uno ne' l'altro: senza un
+  // bivio esplicito resterebbe fermo su una pagina vuota.
+  const isFirstRun = !isCoach && asAthlete.length === 0;
 
   return (
     <>
       <PageTitle>Ciao {user.displayName}</PageTitle>
+
+      {isFirstRun ? (
+        <Card className="p-6">
+          <h2 className="font-semibold">Da qui si comincia</h2>
+          <p className="mt-1 text-muted">Due strade, e puoi percorrerle entrambe.</p>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-line p-4">
+              <p className="font-medium">Ti alleni</p>
+              <p className="mt-1 text-sm text-muted">
+                Chiedi al tuo preparatore il link di invito. Si apre, si accetta, e la scheda
+                compare qui.
+              </p>
+            </div>
+            <div className="rounded-xl border border-line p-4">
+              <p className="font-medium">Alleni qualcuno</p>
+              <p className="mt-1 text-sm text-muted">
+                Genera un link per il tuo primo atleta: quando lo accetta puoi creargli la scheda.
+              </p>
+              <LinkButton href="/atleti" className="mt-3 px-3 py-2 text-sm">
+                Invita un atleta
+              </LinkButton>
+            </div>
+          </div>
+        </Card>
+      ) : null}
 
       {isCoach ? (
         <section className="mb-10">
@@ -85,7 +114,7 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      <section>
+      <section className={isFirstRun ? 'hidden' : undefined}>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Le tue schede</h2>
         {asAthlete.length === 0 ? (
           <EmptyState title="Non hai ancora una scheda">
